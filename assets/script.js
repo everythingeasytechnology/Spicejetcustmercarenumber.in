@@ -548,22 +548,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
-  // 9. CANDIDATE LOGIN & APPLY NOW MODALS WITH DATABASE SYNC
+  // 9. APPLY NOW MODAL WITH DATABASE SYNC
   // ==========================================================================
-  const loginModal = document.getElementById('loginModal');
-  const loginBtn = document.getElementById('loginBtn');
-  const closeLoginModal = document.getElementById('closeLoginModal');
-  const cancelLoginModal = document.getElementById('cancelLoginModal');
-  const candidateLoginForm = document.getElementById('candidateLoginForm');
-  const loginAlertBox = document.getElementById('loginAlertBox');
-  const btnSubmitLogin = document.getElementById('btnSubmitLogin');
-
   const applyNowModal = document.getElementById('applyNowModal');
   const applyNowBtn = document.getElementById('applyNowBtn');
   const closeApplyModal = document.getElementById('closeApplyModal');
   const cancelApplyModal = document.getElementById('cancelApplyModal');
   const applyJobForm = document.getElementById('applyJobForm');
-  const switchApplyModal = document.getElementById('switchApplyModal');
 
   function openModal(modal) {
     if (!modal) return;
@@ -577,86 +568,10 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.setAttribute('aria-hidden', 'true');
   }
 
-  // Login trigger
-  if (loginBtn) {
-    loginBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      closeModal(applyNowModal);
-      openModal(loginModal);
-    });
-  }
-
-  if (closeLoginModal) closeLoginModal.addEventListener('click', () => closeModal(loginModal));
-  if (cancelLoginModal) cancelLoginModal.addEventListener('click', () => closeModal(loginModal));
-  if (loginModal) {
-    loginModal.addEventListener('click', (e) => {
-      if (e.target === loginModal) closeModal(loginModal);
-    });
-  }
-
-  if (switchApplyModal) {
-    switchApplyModal.addEventListener('click', (e) => {
-      e.preventDefault();
-      closeModal(loginModal);
-      openModal(applyNowModal);
-    });
-  }
-
-  // Handle Candidate Login Form Submit
-  if (candidateLoginForm) {
-    candidateLoginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('loginEmailInput').value.trim();
-      const password = document.getElementById('loginPasswordInput').value.trim();
-
-      if (!email || !password) return;
-
-      btnSubmitLogin.disabled = true;
-      btnSubmitLogin.textContent = 'Verifying credentials...';
-      if (loginAlertBox) loginAlertBox.style.display = 'none';
-
-      try {
-        const res = await fetch('api/login.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-
-        if (data.status === 'success') {
-          if (loginAlertBox) {
-            loginAlertBox.style.background = '#d4edda';
-            loginAlertBox.style.color = '#155724';
-            loginAlertBox.textContent = '✓ Login Successful! Redirecting to Dashboard...';
-            loginAlertBox.style.display = 'block';
-          }
-          showToast(`Welcome back, ${data.data.name || 'Candidate'}!`);
-          setTimeout(() => {
-            window.location.href = data.data.redirect || 'dashboard.php';
-          }, 900);
-        } else {
-          if (loginAlertBox) {
-            loginAlertBox.style.background = '#f8d7da';
-            loginAlertBox.style.color = '#721c24';
-            loginAlertBox.textContent = '✗ ' + (data.message || 'Invalid Login ID or Password');
-            loginAlertBox.style.display = 'block';
-          }
-        }
-      } catch (err) {
-        // Fallback for static servers
-        window.location.href = 'dashboard.php';
-      } finally {
-        btnSubmitLogin.disabled = false;
-        btnSubmitLogin.textContent = 'Login to Dashboard →';
-      }
-    });
-  }
-
   // Apply Now triggers
   if (applyNowBtn) {
     applyNowBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      closeModal(loginModal);
       openModal(applyNowModal);
     });
   }
@@ -665,7 +580,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (ctaApplyNowBtn) {
     ctaApplyNowBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      closeModal(loginModal);
       openModal(applyNowModal);
     });
   }
@@ -673,7 +587,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.open-apply-link').forEach((link) => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      closeModal(loginModal);
       openModal(applyNowModal);
     });
   });
@@ -687,7 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Handle Apply Now Form Submit with Database & Credentials Generator
+  // Handle Apply Now Form Submit
   if (applyJobForm) {
     applyJobForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -701,7 +614,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const submitBtn = applyJobForm.querySelector('button[type="submit"]');
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Submitting Application & Generating Credentials...';
+        submitBtn.textContent = 'Submitting Application...';
       }
 
       try {
@@ -713,31 +626,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const data = await res.json();
 
-        if (data.status === 'success') {
+        if (res.ok && data.status === 'success') {
           closeModal(applyNowModal);
           applyJobForm.reset();
-          
-          alert(
-            `🎉 Application Submitted Successfully!\n\n` +
-            `Your Candidate Reference: ${data.data.candidate_id}\n` +
-            `Login ID: ${data.data.email}\n` +
-            `Password: ${data.data.mobile}\n\n` +
-            `A confirmation email has also been dispatched to your email.\n` +
-            `Redirecting you to your Candidate Dashboard to upload your photo and view your 3D ID Card!`
-          );
-
-          window.location.href = data.data.redirect || 'dashboard.php';
+          alert('Application submitted successfully. Our recruitment team will contact you shortly.');
         } else {
           alert('Submission note: ' + (data.message || 'Please check your information.'));
         }
       } catch (err) {
-        // Fallback for static servers
-        closeModal(applyNowModal);
-        applyJobForm.reset();
-        showToast(`Application submitted for ${userName}! Redirecting to dashboard...`);
-        setTimeout(() => {
-          window.location.href = 'dashboard.php';
-        }, 1200);
+        alert('Unable to submit application. Please check the PHP/MySQL setup and try again.');
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;

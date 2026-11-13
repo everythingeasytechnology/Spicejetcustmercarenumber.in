@@ -22,7 +22,7 @@
           <div class="nav-item"><a href="./success-story.html"${active(isSuccess)}>Success Story</a></div>
           <div class="nav-item"><a href="./contact-us.html"${active(isContact)}>Contact Us</a></div>
         </nav>
-        <div class="auth-links"><a href="${home}#login" class="login-trigger" id="loginBtn"><span class="user-icon-circle"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6"></path></svg></span><span>Login</span></a><span class="auth-divider">|</span><a href="${home}#apply-now" class="apply-now-trigger" id="applyNowBtn">Apply Now</a></div>
+        <div class="auth-links"><a href="${home}#apply-now" class="apply-now-trigger" id="applyNowBtn">Apply Now</a></div>
       </div>
     </header>`;
 
@@ -47,4 +47,72 @@
   const footerRoot = document.querySelector('[data-shared-footer]');
   if (headerRoot) headerRoot.outerHTML = header;
   if (footerRoot) footerRoot.outerHTML = footer;
+
+  let applyModal = document.getElementById('applyNowModal');
+  const modalCreatedHere = !applyModal;
+  if (modalCreatedHere) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="modal-overlay" id="applyNowModal" aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="applyModalTitle">
+          <div class="modal-header"><div><h3 id="applyModalTitle">Apply Now — Aviation Careers</h3><p>Fill in your details below to apply for aviation positions</p></div><button type="button" class="modal-close-btn" id="closeApplyModal" aria-label="Close">×</button></div>
+          <form class="apply-form" id="applyJobForm">
+            <div class="form-group"><label for="applyUserName">User Name <span>*</span></label><input type="text" id="applyUserName" name="userName" placeholder="Enter your full name" required></div>
+            <div class="form-row-2"><div class="form-group"><label for="applyContact">Contact <span>*</span></label><input type="tel" id="applyContact" name="contact" placeholder="9876543210" pattern="[0-9]{10}" required></div><div class="form-group"><label for="applyDob">DOB <span>*</span></label><input type="date" id="applyDob" name="dob" required></div></div>
+            <div class="form-row-2"><div class="form-group"><label for="applyJobRole">Job Applied For <span>*</span></label><select id="applyJobRole" name="jobAppliedFor" required><option value="" disabled selected>Select job role</option><option>Cabin Crew</option><option>Ground Staff / CSA</option><option>Airport Ticketing Executive</option><option>Cargo Operations Executive</option><option>Customer Support Specialist</option><option>Aircraft Maintenance Engineer</option><option>Pilot / First Officer</option></select></div><div class="form-group"><label for="applyLocation">Location <span>*</span></label><input type="text" id="applyLocation" name="location" placeholder="City / Airport Location" required></div></div>
+            <div class="form-group"><label for="applyEmail">Email <span>*</span></label><input type="email" id="applyEmail" name="email" placeholder="yourname@example.com" required></div>
+            <div class="modal-footer-actions"><button type="button" class="btn-cancel-modal" id="cancelApplyModal">Cancel</button><button type="submit" class="btn-submit-apply">Submit Application</button></div>
+          </form>
+        </div>
+      </div>`);
+    applyModal = document.getElementById('applyNowModal');
+  }
+
+  if (modalCreatedHere) {
+    const applyButton = document.getElementById('applyNowBtn');
+    const closeButton = document.getElementById('closeApplyModal');
+    const cancelButton = document.getElementById('cancelApplyModal');
+    const form = document.getElementById('applyJobForm');
+    const openApplyModal = () => { applyModal.classList.add('open'); applyModal.setAttribute('aria-hidden', 'false'); document.body.style.overflow = 'hidden'; setTimeout(() => document.getElementById('applyUserName')?.focus(), 50); };
+    const closeApplyModal = () => { applyModal.classList.remove('open'); applyModal.setAttribute('aria-hidden', 'true'); document.body.style.overflow = ''; };
+    applyButton?.addEventListener('click', (event) => { event.preventDefault(); openApplyModal(); });
+    closeButton?.addEventListener('click', closeApplyModal);
+    cancelButton?.addEventListener('click', closeApplyModal);
+    applyModal.addEventListener('click', (event) => { if (event.target === applyModal) closeApplyModal(); });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && applyModal.classList.contains('open')) closeApplyModal(); });
+    form?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      const submit = form.querySelector('[type="submit"]');
+      submit.disabled = true;
+      submit.textContent = 'Submitting...';
+      try {
+        const data = Object.fromEntries(new FormData(form).entries());
+        const response = await fetch('./api/apply.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        const result = await response.json();
+        if (!response.ok || result.status !== 'success') throw new Error(result.message || 'Submission failed.');
+        alert('Application submitted successfully. Our recruitment team will contact you shortly.');
+        form.reset();
+        closeApplyModal();
+      } catch (error) { alert(error.message || 'Unable to submit application.'); }
+      finally { submit.disabled = false; submit.textContent = 'Submit Application'; }
+    });
+  }
+
+  fetch('./api/get-settings.php').then((response) => response.json()).then((result) => {
+    if (result.status !== 'success' || !result.data) return;
+    const settings = result.data;
+    const phoneLink = document.getElementById('footerPhoneLink');
+    const phoneText = document.getElementById('footerPhoneText');
+    const emailLink = document.getElementById('footerEmailLink');
+    const emailText = document.getElementById('footerEmailText');
+    const addressText = document.getElementById('footerAddressText');
+    if (phoneLink) phoneLink.href = `tel:${settings.phone.replace(/[^0-9+]/g, '')}`;
+    if (phoneText) phoneText.textContent = settings.phone;
+    if (emailLink) emailLink.href = `mailto:${settings.email}`;
+    if (emailText) emailText.textContent = settings.email;
+    if (addressText) addressText.textContent = `Registered Office: ${settings.address}`;
+    document.querySelectorAll('[data-setting="phone"]').forEach((el) => { el.textContent = settings.phone; if (el.tagName === 'A') el.href = `tel:${settings.phone.replace(/[^0-9+]/g, '')}`; });
+    document.querySelectorAll('[data-setting="email"]').forEach((el) => { el.textContent = settings.email; if (el.tagName === 'A') el.href = `mailto:${settings.email}`; });
+    document.querySelectorAll('[data-setting="address"]').forEach((el) => { el.textContent = settings.address; });
+  }).catch(() => {});
 })();

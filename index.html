@@ -782,52 +782,6 @@
   </section>
   <div data-shared-footer></div>
 
-  <!-- ==================== CANDIDATE LOGIN MODAL ==================== -->
-  <div class="modal-overlay" id="loginModal" aria-hidden="true">
-    <div class="modal-card" role="dialog" aria-labelledby="loginModalTitle">
-      <div class="modal-header">
-        <div>
-          <h3 id="loginModalTitle">Candidate Portal Login</h3>
-          <p>Login with your registered Email ID and Mobile Number</p>
-        </div>
-        <button type="button" class="modal-close-btn" id="closeLoginModal" aria-label="Close">×</button>
-      </div>
-
-      <form class="apply-form" id="candidateLoginForm">
-        <div class="form-group">
-          <label for="loginEmailInput">Login ID (Registered Email)
-            <span>*</span></label>
-          <input type="email" id="loginEmailInput" name="email" placeholder="yourname@example.com" required>
-        </div>
-
-        <div class="form-group">
-          <label for="loginPasswordInput">Password (Mobile Number)
-            <span>*</span></label>
-          <input type="password" id="loginPasswordInput" name="password" placeholder="Registered 10-digit Mobile Number"
-            required>
-          <small style="color:#777; font-size:11.5px; display:block; margin-top:4px;">*
-            Your password is the Mobile Number provided during
-            registration.</small>
-        </div>
-
-        <div id="loginAlertBox"
-          style="display:none; padding:10px 12px; border-radius:6px; font-size:12.5px; font-weight:600; margin-bottom:12px;">
-        </div>
-
-        <div class="modal-footer-actions">
-          <button type="button" class="btn-cancel-modal" id="cancelLoginModal">Cancel</button>
-          <button type="submit" class="btn-submit-apply" id="btnSubmitLogin">Login to Dashboard →</button>
-        </div>
-
-        <div style="text-align:center; margin-top:16px; font-size:13px; color:#666;">
-          Haven't applied yet? <a href="#apply-now" id="switchApplyModal"
-            style="color:#c4122f; font-weight:700; text-decoration:none;">Apply
-            Now here →</a>
-        </div>
-      </form>
-    </div>
-  </div>
-
   <!-- ==================== APPLY NOW MODAL FORM ==================== -->
   <div class="modal-overlay" id="applyNowModal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-labelledby="applyModalTitle">
